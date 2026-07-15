@@ -5,7 +5,8 @@ import {
   forwardRef,
   Output,
   EventEmitter,
-  Renderer2, OnDestroy
+  Renderer2,
+  OnDestroy
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { concat, Observable, of, Subject } from 'rxjs';
@@ -23,18 +24,19 @@ import * as _ from 'lodash';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({
-    selector: 'ofe-remote-select',
-    templateUrl: 'remote-select.component.html',
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => RemoteSelectComponent),
-            multi: true
-        }
-    ],
-    standalone: false
+  selector: 'ofe-remote-select',
+  templateUrl: 'remote-select.component.html',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => RemoteSelectComponent),
+      multi: true
+    }
+  ],
+  standalone: false
 })
-export class RemoteSelectComponent implements OnInit, ControlValueAccessor, OnDestroy {
+export class RemoteSelectComponent
+  implements OnInit, ControlValueAccessor, OnDestroy {
   // @Input() dataSource: DataSource;
   remoteOptions$: Observable<SelectOption[]>;
   remoteOptionsLoading = false;
@@ -109,17 +111,27 @@ export class RemoteSelectComponent implements OnInit, ControlValueAccessor, OnDe
     this.propagateChange = fn;
   }
 
-  // not used, used for touch input
-  public registerOnTouched() {}
+  // registers 'fn' fired when the control is touched so the parent control's
+  // touched/validation state stays in sync with user interaction
+  public registerOnTouched(fn: any) {
+    this.propagateTouched = fn;
+  }
+
+  // called by Angular reactive forms when the bound control is enabled/disabled
+  public setDisabledState(isDisabled: boolean) {
+    this.disabled = isDisabled;
+  }
   // change events from the textarea
   onChange(event) {
     this.propagateChange(event.id);
+    this.propagateTouched();
     // .....
     // update the form
     // this.propagateChange(this.data);
   }
   selected(event) {
     this.propagateChange(event);
+    this.propagateTouched();
   }
 
   compareItems = (item, selected) => {
@@ -133,6 +145,7 @@ export class RemoteSelectComponent implements OnInit, ControlValueAccessor, OnDe
   // a placeholder for a method that takes one parameter,
   // we use it to emit changes back to the form
   private propagateChange = (change: any) => {};
+  private propagateTouched = () => {};
 
   trackByFn(item: SelectOption) {
     return item.value;
